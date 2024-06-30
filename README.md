@@ -37,7 +37,7 @@ make
 
 OR
 
-[Download the latest release binary](/releases)
+[Download the latest release binary](https://github.com/nronzel/pdir/releases/latest)
 
 Be sure to add the binary to a directory that is on your `$PATH`. See [quick setup](#quick-setup)
 
