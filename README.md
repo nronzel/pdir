@@ -41,6 +41,11 @@ OR
 
 Be sure to add the binary to a directory that is on your `$PATH`. See [quick setup](#quick-setup)
 
+> [!TIP]
+> If you chose to download one of the prebuilt releases, feel free to rename the
+> binary to `pdir`, or set up an alias in your `.bashrc`, `.zshrc`, etc. to
+> make it easier to run.
+
 ## Usage
 
 ```sh
