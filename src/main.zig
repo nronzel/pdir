@@ -65,8 +65,8 @@ const EntryType = enum {
     is_other,
 };
 
-// Entry represents an entry found in the traversal. It holds the name and a
-// tagged union representing the type.
+// Entry represents an entry found in the traversal. It holds the name and an
+// enum representing the type.
 const Entry = struct {
     name: []const u8,
     entry_t: EntryType,
