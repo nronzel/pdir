@@ -27,15 +27,15 @@ pub fn main() !void {
     }
 
     // parse args
-    const parsed_args = try parse_args(args);
+    const parsed_args = try ParseArgs(args);
 
     // get and allocate the absolute path
-    const absolute_path = try get_absolute_path(allocator, parsed_args.dir_path);
+    const absolute_path = try getAbsolutePath(allocator, parsed_args.dir_path);
     defer allocator.free(absolute_path);
 
     var counts = Counts{ .dirs = 0, .files = 0, .sym_links = 0, .other = 0 };
     try stdout.print("{s}\n", .{absolute_path});
-    try print_directory(allocator, absolute_path, parsed_args.max_depth, 0, stdout, &counts);
+    try printDirectory(allocator, absolute_path, parsed_args.max_depth, 0, stdout, &counts);
     try stdout.print("\n{d} directories, {d} files, {d} sym-links, {d} other\n", .{ counts.dirs, counts.files, counts.sym_links, counts.other });
     try buf_writer.flush();
 }
@@ -75,7 +75,7 @@ const Entry = struct {
 // Recursively navigates the provided directory for the provided depth. Keeps
 // count of dirs, files, and sym-links and prints the resulting file structure
 // and counts.
-fn print_directory(allocator: mem.Allocator, path: []const u8, max_depth: usize, current_depth: usize, writer: anytype, counts: *Counts) !void {
+fn printDirectory(allocator: mem.Allocator, path: []const u8, max_depth: usize, current_depth: usize, writer: anytype, counts: *Counts) !void {
     if (current_depth >= max_depth) return;
     var dir = try fs.openDirAbsolute(path, .{ .iterate = true });
     defer dir.close();
@@ -105,12 +105,12 @@ fn print_directory(allocator: mem.Allocator, path: []const u8, max_depth: usize,
     }
 
     // Sort entries alphabetically
-    mem.sort(Entry, entries.items, {}, entry_less_than);
+    mem.sort(Entry, entries.items, {}, entryLessThan);
 
     // Print sorted entries with proper level of indentation. Dirs have a
     // directory icon and everything else gets a file icon.
     for (entries.items) |entry| {
-        try print_indentation(current_depth, writer);
+        try printIndentation(current_depth, writer);
         const symbol = switch (entry.entry_t) {
             .is_dir => "📁",
             else => "📄",
@@ -122,7 +122,7 @@ fn print_directory(allocator: mem.Allocator, path: []const u8, max_depth: usize,
                 if (current_depth < max_depth - 1) {
                     var path_buffer: [fs.max_path_bytes]u8 = undefined;
                     const new_path = try std.fmt.bufPrint(&path_buffer, "{s}{c}{s}", .{ path, fs.path.sep, entry.name });
-                    try print_directory(allocator, new_path, max_depth, current_depth + 1, writer, counts);
+                    try printDirectory(allocator, new_path, max_depth, current_depth + 1, writer, counts);
                 }
             },
             .is_symlink => counts.sym_links += 1,
@@ -137,7 +137,7 @@ const ParsedArgs = struct {
     dir_path: []const u8,
 };
 
-fn parse_args(args: []const []const u8) !ParsedArgs {
+fn ParseArgs(args: []const []const u8) !ParsedArgs {
     var result = ParsedArgs{
         .max_depth = 2,
         .dir_path = ".",
@@ -158,7 +158,7 @@ fn parse_args(args: []const []const u8) !ParsedArgs {
     return result;
 }
 
-fn get_absolute_path(allocator: mem.Allocator, path: []const u8) ![]const u8 {
+fn getAbsolutePath(allocator: mem.Allocator, path: []const u8) ![]const u8 {
     return if (fs.path.isAbsolute(path))
         try allocator.dupe(u8, path)
     else
@@ -166,14 +166,14 @@ fn get_absolute_path(allocator: mem.Allocator, path: []const u8) ![]const u8 {
 }
 
 // Compares entry names alphabetically. Safely handles hidden files and directories.
-fn entry_less_than(context: void, a: Entry, b: Entry) bool {
+fn entryLessThan(context: void, a: Entry, b: Entry) bool {
     _ = context;
     const n1 = if (a.name[0] == '.') a.name[1..] else a.name;
     const n2 = if (b.name[0] == '.') b.name[1..] else b.name;
     return std.ascii.lessThanIgnoreCase(n1, n2);
 }
 
-fn print_indentation(level: usize, writer: anytype) !void {
+fn printIndentation(level: usize, writer: anytype) !void {
     for (0..level) |_| {
         try writer.writeAll("    ");
     }
@@ -194,28 +194,28 @@ fn print_usage(writer: anytype) !void {
     , .{std.os.argv[0]});
 }
 
-test "print_indentation" {
+test "printIndentation" {
     var buffer: [100]u8 = undefined;
     var fbs = std.io.fixedBufferStream(&buffer);
     const writer = fbs.writer();
 
-    try print_indentation(1, writer);
+    try printIndentation(1, writer);
     try expectEqualStrings("    ", fbs.getWritten());
 
     fbs.reset();
-    try print_indentation(3, writer);
+    try printIndentation(3, writer);
     try expectEqualStrings("            ", fbs.getWritten());
 
     fbs.reset();
-    try print_indentation(0, writer);
+    try printIndentation(0, writer);
     try expectEqualStrings("", fbs.getWritten());
 }
 
-test "parse_args" {
+test "ParseArgs" {
     // Test case 1: No arguments (default values)
     {
         const args = [_][]const u8{"program"};
-        const result = try parse_args(&args);
+        const result = try ParseArgs(&args);
         try expectEqual(@as(usize, 2), result.max_depth);
         try expectEqualStrings(".", result.dir_path);
     }
@@ -223,7 +223,7 @@ test "parse_args" {
     // Test case 2: One argument (integer)
     {
         const args = [_][]const u8{ "program", "5" };
-        const result = try parse_args(&args);
+        const result = try ParseArgs(&args);
         try expectEqual(@as(usize, 5), result.max_depth);
         try expectEqualStrings(".", result.dir_path);
     }
@@ -231,7 +231,7 @@ test "parse_args" {
     // Test case 3: One argument (directory path)
     {
         const args = [_][]const u8{ "program", "/home/user" };
-        const result = try parse_args(&args);
+        const result = try ParseArgs(&args);
         try expectEqual(@as(usize, 2), result.max_depth);
         try expectEqualStrings("/home/user", result.dir_path);
     }
@@ -239,7 +239,7 @@ test "parse_args" {
     // Test case 4: Two arguments (directory path and max depth)
     {
         const args = [_][]const u8{ "program", "/home/user", "3" };
-        const result = try parse_args(&args);
+        const result = try ParseArgs(&args);
         try expectEqual(@as(usize, 3), result.max_depth);
         try expectEqualStrings("/home/user", result.dir_path);
     }
@@ -247,11 +247,11 @@ test "parse_args" {
     // Test case 5: Invalid max depth (should return error)
     {
         const args = [_][]const u8{ "program", "/home/user", "invalid" };
-        try expectError(error.InvalidCharacter, parse_args(&args));
+        try expectError(error.InvalidCharacter, ParseArgs(&args));
     }
 }
 
-test "print_directory" {
+test "printDirectory" {
     const allocator = std.testing.allocator;
 
     // Create a temporary directory
@@ -279,7 +279,7 @@ test "print_directory" {
     defer allocator.free(real_path);
 
     // Call print_directory
-    try print_directory(allocator, real_path, 3, 0, writer, &counts);
+    try printDirectory(allocator, real_path, 3, 0, writer, &counts);
 
     // Check the output
     const output = fbs.getWritten();
