@@ -32,7 +32,7 @@ cd pdir
 2. Build the binary:
 
 ```sh
-make
+zig build -Doptimize=ReleaseSafe
 ```
 
 OR
