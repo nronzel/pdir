@@ -35,8 +35,20 @@ pub fn main() !void {
 
     var counts = Counts{ .dirs = 0, .files = 0, .sym_links = 0, .other = 0 };
     try stdout.print("{s}\n", .{absolute_path});
-    try printDirectory(allocator, absolute_path, parsed_args.max_depth, 0, stdout, &counts);
-    try stdout.print("\n{d} directories, {d} files, {d} sym-links, {d} other\n", .{ counts.dirs, counts.files, counts.sym_links, counts.other });
+    try printDirectory(
+        allocator,
+        absolute_path,
+        parsed_args.max_depth,
+        0,
+        stdout,
+        &counts,
+    );
+    try stdout.print("\n{d} directories, {d} files, {d} sym-links, {d} other\n", .{
+        counts.dirs,
+        counts.files,
+        counts.sym_links,
+        counts.other,
+    });
     try buf_writer.flush();
 }
 
@@ -75,7 +87,14 @@ const Entry = struct {
 // Recursively navigates the provided directory for the provided depth. Keeps
 // count of dirs, files, and sym-links and prints the resulting file structure
 // and counts.
-fn printDirectory(allocator: mem.Allocator, path: []const u8, max_depth: usize, current_depth: usize, writer: anytype, counts: *Counts) !void {
+fn printDirectory(
+    allocator: mem.Allocator,
+    path: []const u8,
+    max_depth: usize,
+    current_depth: usize,
+    writer: anytype,
+    counts: *Counts,
+) !void {
     if (current_depth >= max_depth) return;
     var dir = try fs.openDirAbsolute(path, .{ .iterate = true });
     defer dir.close();
@@ -121,8 +140,19 @@ fn printDirectory(allocator: mem.Allocator, path: []const u8, max_depth: usize, 
                 counts.dirs += 1;
                 if (current_depth < max_depth - 1) {
                     var path_buffer: [fs.max_path_bytes]u8 = undefined;
-                    const new_path = try std.fmt.bufPrint(&path_buffer, "{s}{c}{s}", .{ path, fs.path.sep, entry.name });
-                    try printDirectory(allocator, new_path, max_depth, current_depth + 1, writer, counts);
+                    const new_path = try std.fmt.bufPrint(&path_buffer, "{s}{c}{s}", .{
+                        path,
+                        fs.path.sep,
+                        entry.name,
+                    });
+                    try printDirectory(
+                        allocator,
+                        new_path,
+                        max_depth,
+                        current_depth + 1,
+                        writer,
+                        counts,
+                    );
                 }
             },
             .is_symlink => counts.sym_links += 1,
