@@ -110,7 +110,7 @@ improvement in my implementation and use of the language, but as a first project
 after going through [Ziglings](https://codeberg.org/ziglings/exercises/) I am
 happy with what I have.
 
-As for Zig, I am realling liking the language and I'm excited to follow its
+As for Zig, I am really liking the language and I'm excited to follow its
 development as it approaches v1.0 and beyond.
 
 Coming from mostly writing Go for the past year, having proper enums, unions,
