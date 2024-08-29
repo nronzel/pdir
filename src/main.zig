@@ -22,7 +22,7 @@ pub fn main() !void {
 
     // check for flag and print help message
     if (args.len > 1 and (mem.eql(u8, args[1], "-h") or mem.eql(u8, args[1], "--help"))) {
-        try print_usage(stdout);
+        try printUsage(stdout);
         return;
     }
 
@@ -209,7 +209,7 @@ fn printIndentation(level: usize, writer: anytype) !void {
     }
 }
 
-fn print_usage(writer: anytype) !void {
+fn printUsage(writer: anytype) !void {
     try writer.print(
         \\
         \\Usage: {s} [directory] [max_depth]
