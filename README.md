@@ -4,6 +4,9 @@ pdir ("pretty directory" or "print directory") is a lightweight, Zig-based
 implementation of the Linux tree command. It provides a visual representation
 of directory structures, using 📁 icons for directories and 📄 icons for files.
 
+> [!Note]
+> This is not a 1:1 re-implementation of the `tree` utilities functionalies.
+
 ## Features
 
 - Customizable directory path and depth
@@ -11,14 +14,15 @@ of directory structures, using 📁 icons for directories and 📄 icons for fil
 - Provides count of directories, files, sym-links, and others
 - Simple and efficient command-line interface
 
+![screenshot](screenshot.png)
+
 ## Requirements
 
-This was made with Zig version 0.14.0-dev.130+cb308ba3a
-
-[Zig](https://ziglang.org/download/) - master release (2024-06-28 or later)
+Made with [Zig](https://ziglang.org/download/) v0.14
 
 > [!CAUTION]
-> This program was only tested on Linux.
+> This was only tested on Linux. Please open issues if you use the Mac version.
+> Windows users, you will need to clone the repo and build this yourself.
 
 ## Installation
 
@@ -41,11 +45,6 @@ OR
 
 Be sure to add the binary to a directory that is on your `$PATH`. See [quick setup](#quick-setup)
 
-> [!TIP]
-> If you chose to download one of the prebuilt releases, feel free to rename the
-> binary to `pdir`, or set up an alias in your `.bashrc`, `.zshrc`, etc. to
-> make it easier to run.
-
 ## Usage
 
 ```sh
@@ -55,6 +54,8 @@ pdir [directory] [depth]
 - directory: Optional. Path to the directory you want to visualize. Defaults to
   the current working directory.
 - depth: Optional. Maximum depth of directory traversal. Defaults to 2.
+
+With the default depth of 2, it will show the current directory and 1 level of nested directories.
 
 ### Examples
 
@@ -100,24 +101,5 @@ zig test src/main.zig
 
 ## About
 
-I write this re-implementation of `tree` any time I am learning a new language
-as I feel it helps me get a good grasp of some of the basics of the language
-(i.e. working with strings, files & directories, directory traversal,
-recursion, comparisons, sorting, argument parsing, etc.).
-
-Overall this was a joy to build. I'm sure there are plenty of areas for
-improvement in my implementation and use of the language, but as a first project
-after going through [Ziglings](https://codeberg.org/ziglings/exercises/) I am
-happy with what I have.
-
-As for Zig, I am really liking the language and I'm excited to follow its
-development as it approaches v1.0 and beyond.
-
-Coming from mostly writing Go for the past year, having proper enums, unions,
-tagged unions, and optionals is like a breath of fresh air.
-
-I will definitely be using more Zig in my side projects!
-
-> [!NOTE]
-> I developed this on my local self-hosted forgejo and uploaded to Github later,
-> hence the lack of commit history.
+This was written for educational reasons get more familiar with Zig. It is not a 1:1 of the Linux
+`tree` command.
