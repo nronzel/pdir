@@ -5,7 +5,7 @@ implementation of the Linux tree command. It provides a visual representation
 of directory structures, using 📁 icons for directories and 📄 icons for files.
 
 > [!Note]
-> This is not a 1:1 re-implementation of the `tree` utilities functionalies.
+> This is not a 1:1 re-implementation of the `tree` utilities functionalities.
 
 ## Features
 
