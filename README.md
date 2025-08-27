@@ -18,7 +18,7 @@ of directory structures, using 📁 icons for directories and 📄 icons for fil
 
 ## Requirements
 
-Made with [Zig](https://ziglang.org/download/) v0.14
+Made with [Zig](https://ziglang.org/download/) v0.15.1
 
 > [!CAUTION]
 > This was only tested on Linux. Please open issues if you use the Mac version.
@@ -36,7 +36,7 @@ cd pdir
 2. Build the binary:
 
 ```sh
-zig build -Doptimize=ReleaseSafe
+zig build -Doptimize=ReleaseSmall
 ```
 
 OR
