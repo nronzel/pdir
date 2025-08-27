@@ -15,8 +15,9 @@ pub fn main() !void {
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
 
-    var buf_writer = std.io.bufferedWriter(std.io.getStdOut().writer());
-    const stdout = buf_writer.writer();
+    var output_buffer = std.ArrayList(u8).empty;
+    defer output_buffer.deinit(allocator);
+    const stdout = output_buffer.writer(allocator);
 
     if (args.len > 1 and (mem.eql(u8, args[1], "-h") or mem.eql(u8, args[1], "--help"))) {
         try printUsage(stdout);
@@ -44,7 +45,7 @@ pub fn main() !void {
         counts.sym_links,
         counts.other,
     });
-    try buf_writer.flush();
+    try std.fs.File.stdout().writeAll(output_buffer.items);
 }
 
 // Counts keeps track of the number of directories, files, symlinks, and others.
@@ -95,12 +96,12 @@ fn printDirectory(
     defer dir.close();
 
     // store entries in ArrayList for sorting
-    var entries = std.ArrayList(Entry).init(allocator);
+    var entries = std.ArrayList(Entry).empty;
     defer {
         for (entries.items) |entry| {
             allocator.free(entry.name);
         }
-        entries.deinit();
+        entries.deinit(allocator);
     }
 
     var iter = dir.iterate();
@@ -112,7 +113,7 @@ fn printDirectory(
             else => EntryType.is_other,
         };
 
-        try entries.append(Entry{
+        try entries.append(allocator, Entry{
             .name = try allocator.dupe(u8, entry.name),
             .entry_t = entry_type,
         });
