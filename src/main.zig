@@ -5,7 +5,9 @@ const expect = std.testing.expect;
 const expectEqualStrings = std.testing.expectEqualStrings;
 const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
-const assert = std.debug.assert;
+
+const MAX_DEPTH: u7 = 10;
+const DEFAULT_DEPTH: u7 = 2;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -15,9 +17,10 @@ pub fn main() !void {
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
 
-    var output_buffer = std.ArrayList(u8).empty;
-    defer output_buffer.deinit(allocator);
-    const stdout = output_buffer.writer(allocator);
+    // Initialize output buffer with 1MB capacity, will grow automatically.
+    var output = try std.io.Writer.Allocating.initCapacity(allocator, 1 << 20);
+    defer output.deinit();
+    var stdout = &output.writer;
 
     if (args.len > 1 and (mem.eql(u8, args[1], "-h") or mem.eql(u8, args[1], "--help"))) {
         try printUsage(stdout);
@@ -31,11 +34,12 @@ pub fn main() !void {
 
     var counts = Counts{ .dirs = 0, .files = 0, .sym_links = 0, .other = 0 };
     try stdout.print("{s}\n", .{absolute_path});
+    const current_depth: u7 = 0;
     try printDirectory(
         allocator,
         absolute_path,
         parsed_args.max_depth,
-        0,
+        current_depth,
         stdout,
         &counts,
     );
@@ -45,7 +49,8 @@ pub fn main() !void {
         counts.sym_links,
         counts.other,
     });
-    try std.fs.File.stdout().writeAll(output_buffer.items);
+
+    try std.fs.File.stdout().writeAll(output.written());
 }
 
 // Counts keeps track of the number of directories, files, symlinks, and others.
@@ -86,8 +91,8 @@ const Entry = struct {
 fn printDirectory(
     allocator: mem.Allocator,
     path: []const u8,
-    max_depth: u4,
-    current_depth: u4,
+    max_depth: u7,
+    current_depth: u7,
     writer: anytype,
     counts: *Counts,
 ) !void {
@@ -160,32 +165,29 @@ fn printDirectory(
 
 const ParsedArgs = struct {
     dir_path: []const u8,
-    max_depth: u4,
+    max_depth: u7,
 };
 
 fn ParseArgs(args: []const []const u8) !ParsedArgs {
     var result = ParsedArgs{
         .dir_path = ".",
-        .max_depth = 2,
+        .max_depth = DEFAULT_DEPTH,
     };
 
-    // if only one arg is supplied, try to parse it as an int for the max_depth.
-    // if this fails, assume that a directory was supplied instead.
-    if (args.len == 2) {
-        if (std.fmt.parseInt(u4, args[1], 10)) |depth| {
-            assert(depth >= 0);
-            result.max_depth = depth;
-        } else |_| {
-            assert(!std.mem.eql(u8, args[1], ""));
+    switch (args.len) {
+        1 => {}, // default
+        2 => {
+            if (std.fmt.parseInt(u7, args[1], 10)) |depth| {
+                result.max_depth = @min(depth, MAX_DEPTH);
+            } else |_| {
+                result.dir_path = args[1];
+            }
+        },
+        3 => {
             result.dir_path = args[1];
-        }
-    } else if (args.len == 3) {
-        result.dir_path = args[1];
-        result.max_depth = try std.fmt.parseInt(u4, args[2], 10);
-    }
-
-    if (result.max_depth > 10) {
-        result.max_depth = 10;
+            result.max_depth = @min(try std.fmt.parseInt(u7, args[2], 10), MAX_DEPTH);
+        },
+        else => return error.TooManyArguments,
     }
 
     return result;
