@@ -56,10 +56,10 @@ pub fn main() !void {
 // Counts keeps track of the number of directories, files, symlinks, and others.
 // other is defined below.
 const Counts = struct {
-    dirs: u16,
-    files: u16,
-    sym_links: u16,
-    other: u16,
+    dirs: u24,
+    files: u24,
+    sym_links: u24,
+    other: u24,
 };
 
 // only tracking files, dirs, and sym-links. "other" represents the following:
@@ -326,8 +326,8 @@ test "printDirectory" {
     try expect(std.mem.indexOf(u8, output, "📄 file3.txt") != null);
 
     // Check the counts
-    try expectEqual(@as(u16, 3), counts.dirs);
-    try expectEqual(@as(u16, 3), counts.files);
-    try expectEqual(@as(u16, 0), counts.sym_links);
-    try expectEqual(@as(u16, 0), counts.other);
+    try expectEqual(@as(u24, 3), counts.dirs);
+    try expectEqual(@as(u24, 3), counts.files);
+    try expectEqual(@as(u24, 0), counts.sym_links);
+    try expectEqual(@as(u24, 0), counts.other);
 }
